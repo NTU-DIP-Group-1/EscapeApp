@@ -14,17 +14,32 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
+import android.view.MenuItem;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.opencv.android.BaseLoaderCallback;
+import org.opencv.android.CameraBridgeViewBase;
+import org.opencv.android.JavaCameraView;
+import org.opencv.android.LoaderCallbackInterface;
+import org.opencv.android.OpenCVLoader;
+import org.opencv.android.Utils;
+import org.opencv.core.Core;
+import org.opencv.core.CvType;
+import org.opencv.core.Mat;
+import org.opencv.core.Point;
+import org.opencv.core.Scalar;
+import org.opencv.imgproc.Imgproc;
+
 import java.io.IOException;
 
-public class MainActivity  extends Activity implements SurfaceHolder.Callback {
+public class MainActivity  extends Activity implements CameraBridgeViewBase.CvCameraViewListener2 {
     private ImageView mImageView;
     private SurfaceView mSurfaceView;
     private Bitmap mImageBitmap;
@@ -32,166 +47,69 @@ public class MainActivity  extends Activity implements SurfaceHolder.Callback {
     private TextView mHexTextView;
     private View mColorSeen;
 
-    private SurfaceHolder mHolder;
+    private CameraBridgeViewBase mOpenCvCameraView;
 
-    private Camera mCamera;
-    private Camera.Parameters mParameters;
-    private Camera.PictureCallback mCall;
-    private Handler mHandler;
+    private boolean mTakePicture;
 
-    private SharedPreferences mPreferences;
-    private SharedPreferences.Editor mEditor;
-    private int mWidth = 0;
-    private int mHeight = 0;
 
-    private Camera.Size mPhotoSize;
-
-    boolean mStopHandler = false;
-
-    Runnable runnable = new Runnable() {
-        @Override
-        public void run() {
-            if (mCamera != null) {
-                // do your stuff - don't create a new runnable here!
-                mCamera.takePicture(null, null, mCall);
-
-                if (!mStopHandler) {
-                    mHandler.postDelayed(this, 10);
-                }
-            }
-        }
-    };
-
-    /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         setContentView(R.layout.activity_main);
-        mHandler = new Handler();
-        mPreferences = getApplicationContext().getSharedPreferences("pref", 0);
-        mEditor = mPreferences.edit();
+        mTakePicture = false;
 
         mHexTextView = (TextView) findViewById(R.id.colorHex);
-        mImageView = (ImageView) findViewById(R.id.imageView);
         mTakePhotoButton = (Button) findViewById(R.id.takePicture);
-        mSurfaceView = (SurfaceView) findViewById(R.id.surfaceView);
         mColorSeen = findViewById(R.id.color_seen);
 
-        mHolder = mSurfaceView.getHolder();
-        mHolder.addCallback(this);
-        mHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+        mOpenCvCameraView = (JavaCameraView) findViewById(R.id.camera_surface_view);
+
+        mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
+
+        mOpenCvCameraView.setCvCameraViewListener(this);
+
         mTakePhotoButton.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
-                mCamera.takePicture(null, null, mCall);
+               mTakePicture = true;
             }
         });
     }
 
-    @Override
-    public void surfaceChanged(SurfaceHolder sv, int arg1, int arg2, int arg3) {
-        mParameters = mCamera.getParameters();
-        mCamera.setDisplayOrientation(90);
-      //  setBestPictureResolution();
+    public void captureColor(Bitmap mImageBitmap) {
+        if (mImageBitmap != null) {
+            Bitmap tempBtm = rotateImage(mImageBitmap, 90).copy(Bitmap.Config.ARGB_8888, true);
+            Canvas cnvs=new Canvas(tempBtm);
 
-        mCamera.setParameters(mParameters);
-        try {
-            mCamera.setPreviewDisplay(sv);
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-        mCamera.setParameters(mParameters);
-        mCamera.startPreview();
+            Paint paint=new Paint();
+            paint.setStyle(Paint.Style.STROKE);
+            DisplayMetrics dm = getResources().getDisplayMetrics() ;
+            float strokeWidth = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 1, dm);
+            paint.setStrokeWidth(strokeWidth);
 
-        mCall = new Camera.PictureCallback() {
-            @Override
-            public void onPictureTaken(byte[] data, Camera camera) {
+            paint.setColor(Color.RED);
+            cnvs.drawBitmap(tempBtm, 0, 0, null);
+            int halfHeight = tempBtm.getHeight()/2;
+            int halfWidth = tempBtm.getWidth()/2;
+            cnvs.drawRect(halfWidth - 50, halfHeight - 50,halfWidth + 50,halfHeight + 50 , paint);
 
-                if (data != null) {
-                    mImageBitmap = decodeBitmap(data);
-                }
-                if (mImageBitmap != null) {
-                    Bitmap tempBtm = rotateImage(mImageBitmap, 90).copy(Bitmap.Config.ARGB_8888, true);
-                    Canvas cnvs=new Canvas(tempBtm);
+            final int color = tempBtm.getPixel(halfWidth,halfHeight);
 
-                    Paint paint=new Paint();
-                    paint.setStyle(Paint.Style.STROKE);
-                    DisplayMetrics dm = getResources().getDisplayMetrics() ;
-                    float strokeWidth = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 1, dm);
-                    paint.setStrokeWidth(strokeWidth);
+            runOnUiThread(new Runnable() {
 
-                    paint.setColor(Color.RED);
-                    cnvs.drawBitmap(tempBtm, 0, 0, null);
-                    int halfHeight = tempBtm.getHeight()/2;
-                    int halfWidth = tempBtm.getWidth()/2;
-                    cnvs.drawRect(halfWidth - 50, halfHeight - 50,halfWidth + 50,halfHeight + 50 , paint);
-
-                    mImageView.setImageBitmap(tempBtm);
-                    int color = tempBtm.getPixel(halfWidth,halfHeight);
-
+                @Override
+                public void run() {
                     String strColor = String.format("#%06X", 0xFFFFFF & color);
                     mHexTextView.setText(strColor);
                     mColorSeen.setBackgroundColor(color);
                 }
+            });
 
-            }
-        };
-    }
 
-    @Override
-    public void surfaceCreated(SurfaceHolder holder) {
-        // The Surface has been created, acquire the camera and tell it where
-        // to draw the preview.
-        // mCamera = Camera.open();
-        mCamera = getCameraInstance();
-        if (mCamera != null) {
-            try {
-                mCamera.setPreviewDisplay(holder);
-                mHandler.post(runnable);
-
-            } catch (IOException exception) {
-                mCamera.release();
-                mCamera = null;
-            }
-        } else
-            Toast.makeText(getApplicationContext(), "Camera is not available",
-                    Toast.LENGTH_SHORT).show();
-    }
-
-    @Override
-    public void surfaceDestroyed(SurfaceHolder holder) {
-
-        if (mCamera != null) {
-            // stop the preview
-            mCamera.stopPreview();
-            // release the camera
-            mCamera.release();
         }
-        // unbind the camera from this object
-        if (mHandler != null)
-            mHandler.removeCallbacks(runnable);
-    }
 
-    public static Bitmap decodeBitmap(byte[] data) {
-
-        Bitmap bitmap = null;
-        BitmapFactory.Options bfOptions = new BitmapFactory.Options();
-        bfOptions.inDither = false; // Disable Dithering mode
-        bfOptions.inPurgeable = true; // Tell to gc that whether it needs free
-        // memory, the Bitmap can be cleared
-        bfOptions.inInputShareable = true; // Which kind of reference will be
-        // used to recover the Bitmap data
-        // after being clear, when it will
-        // be used in the future
-        bfOptions.inTempStorage = new byte[32 * 1024];
-
-        if (data != null)
-            bitmap = BitmapFactory.decodeByteArray(data, 0, data.length,
-                    bfOptions);
-
-        return bitmap;
     }
 
     public Bitmap rotateImage(Bitmap src, float degree) {
@@ -203,57 +121,91 @@ public class MainActivity  extends Activity implements SurfaceHolder.Callback {
         return Bitmap.createBitmap(src, 0, 0, src.getWidth(), src.getHeight(),
                 matrix, true);
     }
-//
-//    private void setBestPictureResolution() {
-//        // get biggest picture size
-//        mWidth = mPreferences.getInt("Picture_Width", 0);
-//        mHeight = mPreferences.getInt("Picture_height", 0);
-//
-//        if (mWidth == 0 | mHeight == 0) {
-//            mPhotoSize = getBiggesttPictureSize(mParameters);
-//            if (mPhotoSize != null)
-//                mParameters
-//                        .setPictureSize(mPhotoSize.width, mPhotoSize.height);
-//            // save width and height in sharedprefrences
-//            mWidth = mPhotoSize.width;
-//            mHeight = mPhotoSize.height;
-//            mEditor.putInt("Picture_Width", mWidth);
-//            mEditor.putInt("Picture_height", mHeight);
-//            mEditor.commit();
-//
-//        } else {
-//            // if (pictureSize != null)
-//            mParameters.setPictureSize(mWidth, mHeight);
-//        }
-//    }
-//
-//    private Camera.Size getBiggesttPictureSize(Camera.Parameters parameters) {
-//        Camera.Size result = null;
-//
-//        for (Camera.Size size : parameters.getSupportedPictureSizes()) {
-//            if (result == null) {
-//                result = size;
-//            } else {
-//                int resultArea = result.width * result.height;
-//                int newArea = size.width * size.height;
-//
-//                if (newArea > resultArea) {
-//                    result = size;
-//                }
-//            }
-//        }
-//
-//        return (result);
-//    }
 
-    /** A safe way to get an instance of the Camera object. */
-    public Camera getCameraInstance() {
-        Camera c = null;
-        try {
-            c = Camera.open(); // attempt to get a Camera instance
-        } catch (Exception e) {
-            // Camera is not available (in use or does not exist)
+    Mat mRgba;
+    Mat mRgbaF;
+    Mat mRgbaT;
+
+    private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
+        @Override
+        public void onManagerConnected(int status) {
+            switch (status) {
+                case LoaderCallbackInterface.SUCCESS:
+                {
+                    mOpenCvCameraView.enableView();
+                } break;
+                default:
+                {
+                    super.onManagerConnected(status);
+                } break;
+            }
         }
-        return c; // returns null if camera is unavailable
+    };
+
+
+    @Override
+    public void onPause()
+    {
+        super.onPause();
+        if (mOpenCvCameraView != null)
+            mOpenCvCameraView.disableView();
     }
+
+    @Override
+    public void onResume()
+    {
+        super.onResume();
+        if (!OpenCVLoader.initDebug()) {
+            OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_2_4_2, this, mLoaderCallback);
+        } else {
+            mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
+        }
+    }
+
+    public void onDestroy() {
+        super.onDestroy();
+        if (mOpenCvCameraView != null)
+            mOpenCvCameraView.disableView();
+    }
+
+    public void onCameraViewStarted(int width, int height) {
+
+        mRgba = new Mat(height, width, CvType.CV_8UC4);
+        mRgbaF = new Mat(height, width, CvType.CV_8UC4);
+        mRgbaT = new Mat(width, width, CvType.CV_8UC4);
+    }
+
+    public void onCameraViewStopped() {
+        mRgba.release();
+    }
+
+    public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
+
+        // TODO Auto-generated method stub
+        mRgba = inputFrame.rgba();
+        // Rotate mRgba 90 degrees
+        Core.transpose(mRgba, mRgbaT);
+        Imgproc.resize(mRgbaT, mRgbaF, mRgbaF.size(), 0,0, 0);
+        Core.flip(mRgbaF, mRgba, 1 );
+
+        int halfHeight = mRgba.height()/2;
+        int halfWidth = mRgba.width()/2;
+
+        Core.rectangle(mRgba,
+                new Point(halfWidth - 20, halfHeight - 20),
+                new Point(halfWidth + 20, halfHeight + 20),
+                new Scalar(255, 0, 0, 0), 2);
+
+        if (mTakePicture) {
+
+            Bitmap imageBitmap = Bitmap.createBitmap(mRgba.width(), mRgba.height(), Bitmap.Config.ARGB_8888);
+            Utils.matToBitmap(mRgba, imageBitmap);
+
+            captureColor(imageBitmap);
+            mTakePicture = false;
+        }
+
+        return mRgba; // This function must return
+    }
+
 }
