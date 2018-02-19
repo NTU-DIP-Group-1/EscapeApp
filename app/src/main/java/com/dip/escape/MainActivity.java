@@ -87,8 +87,13 @@ public class MainActivity  extends Activity implements CameraBridgeViewBase.CvCa
 
                 @Override
                 public void run() {
-                    String strColor = String.format("#%06X", 0xFFFFFF & color);
-                    mHexTextView.setText(strColor);
+
+                    int red = Color.red(color);
+                    int green = Color.green(color);
+                    int blue = Color.blue(color);
+
+                   // String strColor = String.format("#%06X", 0xFFFFFF & color);
+                    mHexTextView.setText(getColorName(red,green,blue));
                     mColorSeen.setBackgroundColor(color);
                 }
             });
@@ -173,8 +178,32 @@ public class MainActivity  extends Activity implements CameraBridgeViewBase.CvCa
             captureColor(imageBitmap);
             mTakePicture = false;
         }
-        
+
         return mRgba;
     }
 
+    public String getColorName(int r, int g, int b) {
+        if (r > 215 && g > 215 && b > 215) {
+            return "White";
+        } else if (r < 15 && g < 15 && b < 15) {
+            return "Black";
+        } else if (Math.abs(r-g) < 20 && Math.abs(r - b) < 20 && Math.abs(b-g) < 20 ) {
+            return "Grey";
+        } else if ((b - r) > 90 && b > g) {
+            return "Blue";
+        } else if ((g - r) > 25 && g > b) {
+            return "Green";
+        }  else if ((r - g) < 40 && g > b) {
+            return "Yellow";
+        } else if ((r - g) >= 30 && (r - g) < 120 && r>b && g>b) {
+            return "Orange";
+        } else if ((r - b) > 100 && r > g) {
+            return "Red";
+        } else if ((r - g) > 30 && r > b) {
+            return "Pink";
+        } else if ((b - g) > 25 && b > r) {
+            return "Purple";
+        }
+        return "unknown";
+    }
 }
