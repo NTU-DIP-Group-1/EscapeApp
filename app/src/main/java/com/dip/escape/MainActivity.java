@@ -1,12 +1,13 @@
 package com.dip.escape;
 
-import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.os.Bundle;
+import android.support.v4.app.FragmentTransaction;
+import android.support.v7.app.AppCompatActivity;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
 import android.view.SurfaceView;
@@ -28,7 +29,57 @@ import org.opencv.core.Point;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 
-public class MainActivity  extends Activity implements CameraBridgeViewBase.CvCameraViewListener2 {
+public class MainActivity  extends AppCompatActivity implements CameraBridgeViewBase.CvCameraViewListener2 {
+
+    public interface NewColorReadListener {
+        void onColorRead(DetectedColor color);
+    }
+
+    public  enum DetectedColor {
+        PURPLE,
+        PINK,
+        BLUE,
+        BLACK,
+        WHITE,
+        YELLOW,
+        GREEN,
+        ORANGE,
+        RED,
+        GREY;
+
+        public int getValue() {
+            return ordinal() + 1;
+        }
+
+
+        public static DetectedColor fromInteger(int x) {
+            switch(x) {
+                case 1:
+                    return PURPLE;
+                case 2:
+                    return PINK;
+                case 3:
+                    return BLUE;
+                case 4:
+                    return BLACK;
+                case 5:
+                    return WHITE;
+                case 6:
+                    return YELLOW;
+                case 7:
+                    return GREEN;
+                case 8:
+                    return ORANGE;
+                case 9:
+                    return RED;
+                case 10:
+                    return GREY;
+            }
+            return null;
+        }
+
+    }
+
     private Button mTakePhotoButton;
     private TextView mHexTextView;
     private View mColorSeen;
@@ -36,6 +87,7 @@ public class MainActivity  extends Activity implements CameraBridgeViewBase.CvCa
     private Mat mRgba;
     private Mat mRgbaF;
     private Mat mRgbaT;
+    private NewColorReadListener mListener;
 
     private CameraBridgeViewBase mOpenCvCameraView;
     private boolean mTakePicture;
@@ -62,6 +114,14 @@ public class MainActivity  extends Activity implements CameraBridgeViewBase.CvCa
                mTakePicture = true;
             }
         });
+
+        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        ft.replace(R.id.block_game_fragment, new BlockGameFragment());
+        ft.commit();
+    }
+
+    public synchronized void registerNewColorReadListener(NewColorReadListener listener) {
+        mListener = listener;
     }
 
     public void captureColor(Bitmap mImageBitmap) {
@@ -92,8 +152,9 @@ public class MainActivity  extends Activity implements CameraBridgeViewBase.CvCa
                     int green = Color.green(color);
                     int blue = Color.blue(color);
 
-                   // String strColor = String.format("#%06X", 0xFFFFFF & color);
-                    mHexTextView.setText(getColorName(red,green,blue));
+                    DetectedColor c = getColorName(red,green,blue);
+                    mListener.onColorRead(c);
+                    mHexTextView.setText(c.name());
                     mColorSeen.setBackgroundColor(color);
                 }
             });
@@ -182,28 +243,28 @@ public class MainActivity  extends Activity implements CameraBridgeViewBase.CvCa
         return mRgba;
     }
 
-    public String getColorName(int r, int g, int b) {
-        if (r > 215 && g > 215 && b > 215) {
-            return "White";
+    public DetectedColor getColorName(int r, int g, int b) {
+        if (r > 210 && g > 210 && b > 210) {
+            return DetectedColor.WHITE;
         } else if (r < 15 && g < 15 && b < 15) {
-            return "Black";
-        } else if (Math.abs(r-g) < 20 && Math.abs(r - b) < 20 && Math.abs(b-g) < 20 ) {
-            return "Grey";
+            return DetectedColor.BLACK;
+        } else if (Math.abs(r-g) < 25 && Math.abs(r - b) < 25 && Math.abs(b-g) < 25) {
+            return DetectedColor.GREY;
         } else if ((b - r) > 90 && b > g) {
-            return "Blue";
+            return DetectedColor.BLUE;
         } else if ((g - r) > 25 && g > b) {
-            return "Green";
+            return DetectedColor.GREEN;
         }  else if ((r - g) < 40 && g > b) {
-            return "Yellow";
+            return DetectedColor.YELLOW;
         } else if ((r - g) >= 30 && (r - g) < 120 && r>b && g>b) {
-            return "Orange";
+            return DetectedColor.ORANGE;
         } else if ((r - b) > 100 && r > g) {
-            return "Red";
+            return DetectedColor.RED;
         } else if ((r - g) > 30 && r > b) {
-            return "Pink";
+            return DetectedColor.PINK;
         } else if ((b - g) > 25 && b > r) {
-            return "Purple";
+            return DetectedColor.PURPLE;
         }
-        return "unknown";
+        return DetectedColor.BLACK;
     }
 }
