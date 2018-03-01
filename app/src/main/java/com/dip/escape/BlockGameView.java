@@ -17,38 +17,50 @@ import java.util.HashMap;
 
 public class BlockGameView extends SurfaceView implements Runnable {
 
+    // This stores all the colors and maps them to a hex value that we want to display
     public HashMap<MainActivity.DetectedColor, String> colorValues;
 
+    // thread is needded to not lag the UI
     private Thread mThread = null;
 
     // first integer indicates what direction the cube should move in
     // ie. 1 => vertical 2 => horizontal
     private int[][] gameBoard = new int[][]{{11,0,0,0,13,0,0},
-                                            {21,0,22,22,13,24,24},
+                                            {11,0,22,22,13,24,24},
                                             {0,0,0,0,13,17,0},
                                             {0,0,15,26,26,17,18},
                                             {29,29,15,0,0,17,18},
                                             {0,0,0,0,0,0,18}};
 
+    // a boolean that keeps track of whether the user is playing the game currently
     private volatile boolean mPlaying;
 
+    // These variables are used to draw the game
     private Canvas mCanvas;
     private SurfaceHolder mHolder;
     private Paint mPaint;
     private Paint mArrowPaint;
 
+    // these are the game play screen width and height
     private int mScreenWidth;
     private int mScreenHeight;
 
+    // this is how often we wnat to refresh the screen that holds the game
     private long mNextFrameTime;
     private final long FRAMES_PER_SECOND = 10;
+
+    // dynamically calculated block sizes, based on screen size
     private int mBlockSizeWidth;
     private int mBlockSizeHeight;
 
+    // set number of blocks we want for width and height
     private final int NUM_BLOCKS_WIDE = 7;
     private final int NUM_BLOCKS_HIGH = 6;
 
+    // this keeps track of whether we have drawn the exit arrow
     private boolean mArrowDrawn;
+
+    // this is set to true if we are currently moving a block
     private boolean mCurrentlyMoving;
 
     public BlockGameView(Context context) {
