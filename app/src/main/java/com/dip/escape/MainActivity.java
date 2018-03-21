@@ -28,6 +28,7 @@ import org.opencv.core.Mat;
 import org.opencv.core.Point;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
+import org.opencv.photo.Photo;
 
 public class MainActivity  extends AppCompatActivity implements CameraBridgeViewBase.CvCameraViewListener2 {
 
@@ -92,6 +93,8 @@ public class MainActivity  extends AppCompatActivity implements CameraBridgeView
     private CameraBridgeViewBase mOpenCvCameraView;
     private boolean mTakePicture;
 
+    private PhotonConnect mPhoton;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -107,13 +110,18 @@ public class MainActivity  extends AppCompatActivity implements CameraBridgeView
         mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
         mOpenCvCameraView.setCvCameraViewListener(this);
 
+        mPhoton = new PhotonConnect();
+        mPhoton.authenticate(this);
+
         mTakePhotoButton.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
-               mTakePicture = true;
+                mPhoton.toggleServo();
+                mTakePicture = true;
             }
         });
+
 
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         ft.replace(R.id.block_game_fragment, new BlockGameFragment());
@@ -244,9 +252,9 @@ public class MainActivity  extends AppCompatActivity implements CameraBridgeView
     }
 
     public DetectedColor getColorName(int r, int g, int b) {
-        if (r > 210 && g > 210 && b > 210) {
+        if (r > 190 && g > 190 && b > 190) {
             return DetectedColor.WHITE;
-        } else if (r < 15 && g < 15 && b < 15) {
+        } else if (r < 45 && g < 45 && b < 45) {
             return DetectedColor.BLACK;
         } else if (Math.abs(r-g) < 25 && Math.abs(r - b) < 25 && Math.abs(b-g) < 25) {
             return DetectedColor.GREY;
@@ -265,6 +273,6 @@ public class MainActivity  extends AppCompatActivity implements CameraBridgeView
         } else if ((b - g) > 25 && b > r) {
             return DetectedColor.PURPLE;
         }
-        return DetectedColor.BLACK;
+        return DetectedColor.GREY;
     }
 }

@@ -234,7 +234,7 @@ public class BlockGameView extends SurfaceView implements Runnable {
                                 }
                                 moved = true;
                                 break;
-                            } else if (bot < NUM_BLOCKS_HIGH && gameBoard[bot][j]%10 == 0) {
+                            } else if (bot >-1 && bot < NUM_BLOCKS_HIGH && gameBoard[bot][j]%10 == 0) {
                                 int emptyBlock = bot;
                                 while (emptyBlock < NUM_BLOCKS_HIGH && gameBoard[emptyBlock][j]%10 == 0) {
                                     emptyBlock++;
@@ -288,7 +288,7 @@ public class BlockGameView extends SurfaceView implements Runnable {
                                 }
                                 moved = true;
                                 break;
-                            } else if (right < NUM_BLOCKS_WIDE && gameBoard[i][right]%10 == 0) {
+                            } else if (right > -1 && right < NUM_BLOCKS_WIDE && gameBoard[i][right]%10 == 0) {
                                 int emptyBlock = right;
                                 while (emptyBlock < NUM_BLOCKS_WIDE && gameBoard[i][emptyBlock]%10 == 0) {
                                     emptyBlock++;
