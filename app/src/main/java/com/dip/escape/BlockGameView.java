@@ -1,6 +1,7 @@
 package com.dip.escape;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -17,11 +18,17 @@ import java.util.HashMap;
 
 public class BlockGameView extends SurfaceView implements Runnable {
 
-    // This stores all the colors and maps them to a hex value that we want to display
-    public HashMap<MainActivity.DetectedColor, String> colorValues;
+    public interface DoneGame {
+        public void finishGame();
+    }
 
-    // thread is needded to not lag the UI
+    // This stores all the colors and maps them to a hex value that we want to display
+    public HashMap<ColorPuzzleActivity.DetectedColor, String> colorValues;
+
+    // thread is needed to not lag the UI
     private Thread mThread = null;
+
+    private DoneGame mDoneGameListener;
 
     // first integer indicates what direction the cube should move in
     // ie. 1 => vertical 2 => horizontal
@@ -63,7 +70,7 @@ public class BlockGameView extends SurfaceView implements Runnable {
     // this is set to true if we are currently moving a block
     private boolean mCurrentlyMoving;
 
-    public BlockGameView(Context context) {
+    public BlockGameView(Context context, DoneGame listener) {
         super(context);
 
         initColorVals();
@@ -73,6 +80,7 @@ public class BlockGameView extends SurfaceView implements Runnable {
         mArrowPaint = new Paint();
         mArrowDrawn = false;
         mCurrentlyMoving = false;
+        mDoneGameListener = listener;
 
         getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
@@ -91,16 +99,16 @@ public class BlockGameView extends SurfaceView implements Runnable {
     }
 
     public void initColorVals() {
-        colorValues = new HashMap<MainActivity.DetectedColor, String>();
-        colorValues.put(MainActivity.DetectedColor.RED, "#FF0000");
-        colorValues.put(MainActivity.DetectedColor.WHITE, "#FFFFFF");
-        colorValues.put(MainActivity.DetectedColor.BLUE, "#0051ff");
-        colorValues.put(MainActivity.DetectedColor.GREEN, "#1bcc00");
-        colorValues.put(MainActivity.DetectedColor.PURPLE, "#8227f6");
-        colorValues.put(MainActivity.DetectedColor.PINK, "#ff2beb");
-        colorValues.put(MainActivity.DetectedColor.ORANGE, "#ffa700");
-        colorValues.put(MainActivity.DetectedColor.YELLOW, "#fdff00");
-        colorValues.put(MainActivity.DetectedColor.BLACK, "#000000");
+        colorValues = new HashMap<ColorPuzzleActivity.DetectedColor, String>();
+        colorValues.put(ColorPuzzleActivity.DetectedColor.RED, "#FF0000");
+        colorValues.put(ColorPuzzleActivity.DetectedColor.WHITE, "#FFFFFF");
+        colorValues.put(ColorPuzzleActivity.DetectedColor.BLUE, "#0051ff");
+        colorValues.put(ColorPuzzleActivity.DetectedColor.GREEN, "#1bcc00");
+        colorValues.put(ColorPuzzleActivity.DetectedColor.PURPLE, "#8227f6");
+        colorValues.put(ColorPuzzleActivity.DetectedColor.PINK, "#ff2beb");
+        colorValues.put(ColorPuzzleActivity.DetectedColor.ORANGE, "#ffa700");
+        colorValues.put(ColorPuzzleActivity.DetectedColor.YELLOW, "#fdff00");
+        colorValues.put(ColorPuzzleActivity.DetectedColor.BLACK, "#000000");
     }
 
     public void run() {
@@ -147,11 +155,11 @@ public class BlockGameView extends SurfaceView implements Runnable {
                     int colorInt = gameBoard[i][j] %10;
                     if (colorInt > 0) {
 
-                        if (colorInt == MainActivity.DetectedColor.RED.getValue() && !mArrowDrawn) {
+                        if (colorInt == ColorPuzzleActivity.DetectedColor.RED.getValue() && !mArrowDrawn) {
                             drawArrow(i, j);
                         }
 
-                        mPaint.setColor(Color.parseColor(colorValues.get(MainActivity.DetectedColor.fromInteger(colorInt))));
+                        mPaint.setColor(Color.parseColor(colorValues.get(ColorPuzzleActivity.DetectedColor.fromInteger(colorInt))));
 
                         mCanvas.drawRect( j * mBlockSizeWidth,
                                 i * mBlockSizeHeight,
@@ -187,7 +195,7 @@ public class BlockGameView extends SurfaceView implements Runnable {
         mArrowDrawn = true;
     }
 
-    public void executeMoveBlock(MainActivity.DetectedColor color) {
+    public void executeMoveBlock(ColorPuzzleActivity.DetectedColor color) {
         boolean moved = false;
         if (colorValues.get(color) != null) {
             int colorToMove = color.getValue();
@@ -310,13 +318,23 @@ public class BlockGameView extends SurfaceView implements Runnable {
                 }
             }
         }
+
+        if (gameBoard[4][6] == 29) {
+            finishGame();
+        }
         mCurrentlyMoving = false;
     }
 
-    public void moveBlock(MainActivity.DetectedColor color) {
+    public void moveBlock(ColorPuzzleActivity.DetectedColor color) {
         if (!mCurrentlyMoving) {
             mCurrentlyMoving = true;
             executeMoveBlock(color);
+        }
+    }
+
+    public void finishGame() {
+        if (mDoneGameListener != null) {
+            mDoneGameListener.finishGame();
         }
     }
 

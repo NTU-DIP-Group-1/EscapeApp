@@ -6,7 +6,9 @@ import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.os.Bundle;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
@@ -28,9 +30,8 @@ import org.opencv.core.Mat;
 import org.opencv.core.Point;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
-import org.opencv.photo.Photo;
 
-public class MainActivity  extends AppCompatActivity implements CameraBridgeViewBase.CvCameraViewListener2 {
+public class ColorPuzzleActivity extends AppCompatActivity implements CameraBridgeViewBase.CvCameraViewListener2 {
 
     public interface NewColorReadListener {
         void onColorRead(DetectedColor color);
@@ -83,7 +84,7 @@ public class MainActivity  extends AppCompatActivity implements CameraBridgeView
 
     private Button mTakePhotoButton;
     private TextView mHexTextView;
-    private View mColorSeen;
+    private TextView mInstructions;
 
     private Mat mRgba;
     private Mat mRgbaF;
@@ -93,31 +94,38 @@ public class MainActivity  extends AppCompatActivity implements CameraBridgeView
     private CameraBridgeViewBase mOpenCvCameraView;
     private boolean mTakePicture;
 
-    private PhotonConnect mPhoton;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_color_puzzle);
         mTakePicture = false;
 
-        mHexTextView = (TextView) findViewById(R.id.colorHex);
+        mHexTextView = (TextView) findViewById(R.id.color);
         mTakePhotoButton = (Button) findViewById(R.id.takePicture);
-        mColorSeen = findViewById(R.id.color_seen);
+        mInstructions = (TextView) findViewById(R.id.instructions);
+        final AlertDialog diag = new AlertDialog.Builder(this)
+                .setTitle("How to play?")
+                .setView(R.layout.instruction_dialog_frag)
+                .create();
+        mInstructions.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                diag.show();
+            }
+        });
 
         mOpenCvCameraView = (JavaCameraView) findViewById(R.id.camera_surface_view);
         mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
         mOpenCvCameraView.setCvCameraViewListener(this);
 
-        mPhoton = new PhotonConnect();
-        mPhoton.authenticate(this);
+        PhotonConnect.authenticate(this);
 
         mTakePhotoButton.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
-                mPhoton.toggleServo();
                 mTakePicture = true;
             }
         });
@@ -163,7 +171,6 @@ public class MainActivity  extends AppCompatActivity implements CameraBridgeView
                     DetectedColor c = getColorName(red,green,blue);
                     mListener.onColorRead(c);
                     mHexTextView.setText(c.name());
-                    mColorSeen.setBackgroundColor(color);
                 }
             });
         }

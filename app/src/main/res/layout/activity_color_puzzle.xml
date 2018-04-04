@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:opencv="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:orientation="vertical"
+    android:layout_height="wrap_content" >
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:id="@+id/top_bar">
+        <TextView
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:textSize="16dp"
+            android:textColor="#000000"
+            android:id="@+id/color" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:textSize="16dp"
+            android:id="@+id/instructions"
+            android:paddingRight="10dp"
+            android:textColor="#000000"
+            android:text="\?"/>
+    </RelativeLayout>
+
+    <org.opencv.android.JavaCameraView
+        android:layout_below="@id/top_bar"
+        android:layout_width="match_parent"
+        android:layout_height="250dp"
+        android:visibility="gone"
+        android:id="@+id/camera_surface_view"
+        opencv:show_fps="false"
+        opencv:camera_id="any"
+        android:layout_margin="2dp"/>
+
+    <FrameLayout
+        android:id="@+id/block_game_fragment"
+        android:layout_above="@id/takePicture"
+        android:layout_below="@id/camera_surface_view"
+        android:layout_width="wrap_content"
+        android:layout_height="320dp"
+        android:padding="2dp">
+    </FrameLayout>
+
+    <Button
+        android:layout_alignParentBottom="true"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Get Color"
+        android:id="@+id/takePicture"/>
+
+
+</RelativeLayout>

@@ -19,29 +19,28 @@ public class PhotonConnect {
 
     public static final String EMAIL = "email@email.com";
     public static final String PASSWORD = "password";
-    public static final String DEVICE_ID = "xxx";
+    public static final String DEVICE_ID = "123";
 
     private static ParticleDevice mCurrDevice;
 
-    private int mCurrServo;
-
-    public void authenticate(Context ctx) {
-        ParticleDeviceSetupLibrary.init(ctx, MainActivity.class);
-        mCurrServo = 1;
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    ParticleCloudSDK.getCloud().logIn(EMAIL, PASSWORD);
-                    mCurrDevice = ParticleCloudSDK.getCloud().getDevice(DEVICE_ID);
-                } catch (ParticleCloudException e) {
-                    e.printStackTrace();
+    public static void authenticate(Context ctx) {
+        if (mCurrDevice == null) {
+        ParticleDeviceSetupLibrary.init(ctx, ColorPuzzleActivity.class);
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        ParticleCloudSDK.getCloud().logIn(EMAIL, PASSWORD);
+                        mCurrDevice = ParticleCloudSDK.getCloud().getDevice(DEVICE_ID);
+                    } catch (ParticleCloudException e) {
+                        e.printStackTrace();
+                    }
                 }
-            }
-        }).start();
+            }).start();
+        }
     }
 
-    public void toggleServo() {
+    public static void toggleServo(final int servo) {
         if (mCurrDevice == null) {
             return;
         }
@@ -50,15 +49,10 @@ public class PhotonConnect {
             public void run() {
                 List<String> args = new ArrayList<String>();
 
-                args.add(Integer.toString(mCurrServo));
+                args.add(Integer.toString(servo));
 
                 try {
                     mCurrDevice.callFunction("servo", args);
-                    if (mCurrServo == 3) {
-                        mCurrServo = 1;
-                    } else {
-                        mCurrServo++;
-                    }
                 } catch (ParticleCloudException | ParticleDevice.FunctionDoesNotExistException | IOException e) {
                     e.printStackTrace();
                 }

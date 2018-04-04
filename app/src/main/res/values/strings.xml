@@ -1,4 +1,9 @@
 <resources>
     <string name="app_name">Escape</string>
     <string name="action_settings">Settings</string>
+    <string name="title_activity_word_puzzle">WordPuzzleActivity</string>
+
+    <string name="first_puzzle_text">This is the first Puzzle. You must solve 3 puzzles on this phone to retrieve the key for the final puzzle.</string>
+    <string name="second_puzzle_text">This is the second Puzzle. You must solve 3 puzzles on this phone to retrieve the key for the final puzzle.</string>
+    <string name="color_puzzle_instructions">Search your surroundings for colors that match the blocks, and use them to get the red block out!</string>
 </resources>
