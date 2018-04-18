@@ -262,9 +262,9 @@ public class ColorPuzzleActivity extends AppCompatActivity implements CameraBrid
     }
 
     public DetectedColor getColorName(int r, int g, int b) {
-        if (r > 180 && g > 180 && b > 180) {
+        if (r > 160 && g > 160 && b > 160) {
             return DetectedColor.WHITE;
-        } else if (r < 45 && g < 45 && b < 45) {
+        } else if (r < 40 && g < 40 && b < 40) {
             return DetectedColor.BLACK;
         } else if (Math.abs(r-g) < 25 && Math.abs(r - b) < 25 && Math.abs(b-g) < 25) {
             return DetectedColor.GREY;
@@ -272,7 +272,7 @@ public class ColorPuzzleActivity extends AppCompatActivity implements CameraBrid
             return DetectedColor.BLUE;
         } else if ((g - r) > 25 && g > b) {
             return DetectedColor.GREEN;
-        }  else if ((r - g) < 55 && g > b) {
+        }  else if ((r - g) < 65 && g > b) {
             return DetectedColor.YELLOW;
         } else if ((r - g) >= 40 && (r - g) < 120 && r>b && g>b) {
             return DetectedColor.ORANGE;
