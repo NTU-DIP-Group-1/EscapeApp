@@ -27,4 +27,11 @@ public class WordPuzzleActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    public void onBackPressed() {
+        // do noting
+    }
+
+
+
 }

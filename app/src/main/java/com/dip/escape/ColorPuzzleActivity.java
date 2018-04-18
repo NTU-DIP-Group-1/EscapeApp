@@ -12,6 +12,7 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
+import android.view.KeyEvent;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.WindowManager;
@@ -211,10 +212,12 @@ public class ColorPuzzleActivity extends AppCompatActivity implements CameraBrid
     public void onResume() {
         super.onResume();
         if (!OpenCVLoader.initDebug()) {
-            OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_2_4_2, this, mLoaderCallback);
+            OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_2_4_9, this, mLoaderCallback);
         } else {
             mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
         }
+
+
     }
 
     public void onDestroy() {
@@ -259,7 +262,7 @@ public class ColorPuzzleActivity extends AppCompatActivity implements CameraBrid
     }
 
     public DetectedColor getColorName(int r, int g, int b) {
-        if (r > 190 && g > 190 && b > 190) {
+        if (r > 180 && g > 180 && b > 180) {
             return DetectedColor.WHITE;
         } else if (r < 45 && g < 45 && b < 45) {
             return DetectedColor.BLACK;
@@ -269,17 +272,24 @@ public class ColorPuzzleActivity extends AppCompatActivity implements CameraBrid
             return DetectedColor.BLUE;
         } else if ((g - r) > 25 && g > b) {
             return DetectedColor.GREEN;
-        }  else if ((r - g) < 40 && g > b) {
+        }  else if ((r - g) < 55 && g > b) {
             return DetectedColor.YELLOW;
-        } else if ((r - g) >= 30 && (r - g) < 120 && r>b && g>b) {
+        } else if ((r - g) >= 40 && (r - g) < 120 && r>b && g>b) {
             return DetectedColor.ORANGE;
-        } else if ((r - b) > 100 && r > g) {
+        } else if ((r - b) > 120 && r > g) {
             return DetectedColor.RED;
-        } else if ((r - g) > 30 && r > b) {
+        } else if ((r - g) > 35 && r > b) {
             return DetectedColor.PINK;
         } else if ((b - g) > 25 && b > r) {
             return DetectedColor.PURPLE;
         }
         return DetectedColor.GREY;
     }
+
+
+    @Override
+    public void onBackPressed() {
+        // do noting
+    }
+
 }

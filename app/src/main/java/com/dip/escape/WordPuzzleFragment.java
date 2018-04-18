@@ -26,8 +26,8 @@ public class WordPuzzleFragment extends Fragment {
     private Boolean firstLevel;
     private ImageView mPuzzleImage;
 
-    private static String FIRST_ANSWER = "dip";
-    private static String SECOND_ANSWER = "eee";
+    private static String FIRST_ANSWER = "open";
+    private static String SECOND_ANSWER = "safe";
 
     public WordPuzzleFragment() {
     }
@@ -49,7 +49,7 @@ public class WordPuzzleFragment extends Fragment {
         mSubmitButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                String currentText = mAnswer.getText().toString().toLowerCase();
+                String currentText = mAnswer.getText().toString().toLowerCase().trim();
                 verifyResult(currentText);
             }
         });
@@ -78,9 +78,10 @@ public class WordPuzzleFragment extends Fragment {
 
     private void changePuzzle() {
         String newString = getString(R.string.second_puzzle_text);
-        mPuzzleImage.setVisibility(View.VISIBLE);
         firstLevel = false;
         mPrompt.setText(newString);
+
+        mPuzzleImage.setImageDrawable(getResources().getDrawable(R.drawable.maze_real));
         View view = getActivity().getCurrentFocus();
         if (view != null) {
             InputMethodManager imm = (InputMethodManager)getActivity().getSystemService(getActivity().INPUT_METHOD_SERVICE);

@@ -9,8 +9,7 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:text="Congratulations!
-        You are done!"
-        android:textSize="40dp"
+        android:text="10"
+        android:textSize="60dp"
         android:gravity="center"/>
 </android.support.constraint.ConstraintLayout>

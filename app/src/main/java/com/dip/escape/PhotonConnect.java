@@ -19,7 +19,7 @@ public class PhotonConnect {
 
     public static final String EMAIL = "email@email.com";
     public static final String PASSWORD = "password";
-    public static final String DEVICE_ID = "123";
+    public static final String DEVICE_ID = "xxx";
 
     private static ParticleDevice mCurrDevice;
 
