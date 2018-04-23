@@ -148,24 +148,26 @@ public class BlockGameView extends SurfaceView implements Runnable {
     public void drawGame() {
         if (mHolder.getSurface().isValid()) {
             mCanvas = mHolder.lockCanvas();
-            mCanvas.drawColor(Color.argb(255, 255, 204, 153));
+            if (mCanvas != null ) {
+                mCanvas.drawColor(Color.argb(255, 255, 204, 153));
 
-            for (int i = 0; i < NUM_BLOCKS_HIGH; i++) {
-                for (int j = 0; j < NUM_BLOCKS_WIDE ; j++ ) {
-                    int colorInt = gameBoard[i][j] %10;
-                    if (colorInt > 0) {
+                for (int i = 0; i < NUM_BLOCKS_HIGH; i++) {
+                    for (int j = 0; j < NUM_BLOCKS_WIDE; j++) {
+                        int colorInt = gameBoard[i][j] % 10;
+                        if (colorInt > 0) {
 
-                        if (colorInt == ColorPuzzleActivity.DetectedColor.RED.getValue() && !mArrowDrawn) {
-                            drawArrow(i, j);
+                            if (colorInt == ColorPuzzleActivity.DetectedColor.RED.getValue() && !mArrowDrawn) {
+                                drawArrow(i, j);
+                            }
+
+                            mPaint.setColor(Color.parseColor(colorValues.get(ColorPuzzleActivity.DetectedColor.fromInteger(colorInt))));
+
+                            mCanvas.drawRect(j * mBlockSizeWidth,
+                                    i * mBlockSizeHeight,
+                                    (j + 1) * mBlockSizeWidth,
+                                    (1 + i) * mBlockSizeHeight,
+                                    mPaint);
                         }
-
-                        mPaint.setColor(Color.parseColor(colorValues.get(ColorPuzzleActivity.DetectedColor.fromInteger(colorInt))));
-
-                        mCanvas.drawRect( j * mBlockSizeWidth,
-                                i * mBlockSizeHeight,
-                                (j + 1) * mBlockSizeWidth,
-                                (1 + i) * mBlockSizeHeight,
-                                mPaint);
                     }
                 }
             }
